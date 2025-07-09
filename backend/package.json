@@ -1,0 +1,35 @@
+{
+  "name": "trackani",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "tsc": "tsc",
+    "dev": "ts-node-dev src/index.ts",
+    "lint": "eslint .",
+    "makemigrations": "npx drizzle-kit generate",
+    "migrate": "npx drizzle-kit migrate"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@eslint/js": "^9.30.1",
+    "@stylistic/eslint-plugin": "^5.1.0",
+    "@types/eslint__js": "^8.42.3",
+    "@types/express": "^5.0.3",
+    "@types/pg": "^8.15.4",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.30.1",
+    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.8.3",
+    "typescript-eslint": "^8.35.1"
+  },
+  "dependencies": {
+    "dotenv": "^17.1.0",
+    "drizzle-orm": "^0.44.2",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  }
+}
