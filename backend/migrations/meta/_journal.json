@@ -8,6 +8,13 @@
       "when": 1752575710438,
       "tag": "0000_normal_killmonger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1752577133297,
+      "tag": "0001_grey_crusher_hogan",
+      "breakpoints": true
     }
   ]
 }
