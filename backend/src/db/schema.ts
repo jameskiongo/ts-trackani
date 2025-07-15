@@ -1,7 +1,12 @@
 import * as t from "drizzle-orm/pg-core";
-import { pgTable } from "drizzle-orm/pg-core";
 
-export const animeTable = pgTable("animeTable", {
+export const statusEnum = t.pgEnum("status", [
+	"watching",
+	"completed",
+	"on hold",
+	"maybe watching",
+]);
+export const animeTable = t.pgTable("animeTable", {
 	id: t.serial("id").primaryKey(),
 	title: t.varchar("title", { length: 256 }).notNull(),
 	synopsis: t.text("synopsis"),
@@ -10,8 +15,19 @@ export const animeTable = pgTable("animeTable", {
 	episodes: t.integer("episodes"),
 	animePoster: t.varchar("animePoster", { length: 200 }),
 	isBookmarked: t.boolean().default(false),
+	mal_id: t.integer("mal_id").unique(),
+	userId: t
+		.integer("userId")
+		.notNull()
+		.references(() => userTable.id, { onDelete: "cascade" }),
+	watch_status: statusEnum("status").notNull().default("watching"),
+	createdAt: t.timestamp("createdAt").notNull().defaultNow(),
+	updatedAt: t
+		.timestamp("updatedAt")
+		.notNull()
+		.$onUpdate(() => new Date()),
 });
-export const userTable = pgTable("userTable", {
+export const userTable = t.pgTable("userTable", {
 	id: t.serial("id").primaryKey(),
 	firstName: t.varchar("firstName", { length: 256 }),
 	lastName: t.varchar("lastName", { length: 256 }),
