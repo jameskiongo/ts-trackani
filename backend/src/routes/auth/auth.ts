@@ -16,7 +16,16 @@ router.get(
 );
 
 router.get("/google/redirect", passport.authenticate("google"), (_req, res) => {
-	res.send("This is the callback route");
+	res.redirect("/auth/protected");
+});
+router.get("/protected", (req, res) => {
+	if (req.isAuthenticated()) {
+		res.send("You are authenticated");
+	} else {
+		res
+			.status(401)
+			.send("You are not authenticated, <a href='/auth/google'>Google</a>");
+	}
 });
 
 export default router;
