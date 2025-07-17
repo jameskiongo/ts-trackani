@@ -1,12 +1,6 @@
 import axios, { type AxiosResponse } from "axios";
-import type { InferSelectModel } from "drizzle-orm";
-import type { animeTable } from "../db/schema";
+import type { AnimeReturn } from "../typings/types";
 
-type ALLANIME = InferSelectModel<typeof animeTable>;
-type AnimeReturn = Omit<
-	ALLANIME,
-	"isBookmarked" | "id" | "watch_status" | "createdAt" | "updatedAt" | "userId"
->;
 interface Pagination {
 	last_visible_page: number;
 	has_next_page: boolean;
