@@ -15,7 +15,7 @@ export const animeTable = t.pgTable("animeTable", {
 	episodes: t.integer("episodes"),
 	animePoster: t.varchar("animePoster", { length: 200 }),
 	isBookmarked: t.boolean().default(false),
-	mal_id: t.integer("mal_id").unique(),
+	mal_id: t.integer("mal_id").notNull().unique(),
 	userId: t
 		.integer("userId")
 		.notNull()

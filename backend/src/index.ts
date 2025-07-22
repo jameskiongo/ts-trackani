@@ -1,5 +1,6 @@
 import express from "express";
 import session from "express-session";
+import animeRouter from "./routes/anime/anime";
 import authRouter from "./routes/auth/auth";
 import "dotenv/config";
 import "./routes/auth/passport";
@@ -27,6 +28,7 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 app.use("/auth", authRouter);
+app.use("/anime", animeRouter);
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`);
 });
