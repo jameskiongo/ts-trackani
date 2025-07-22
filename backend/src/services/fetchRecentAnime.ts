@@ -18,10 +18,9 @@ type AnimeResponse = {
 
 export async function fetchRecentAnime(endpoint: string) {
 	try {
-		const response: AxiosResponse<AnimeResponse> = await axios.get(endpoint);
-		const animeData = response.data.data;
 		const bookmarked = false;
-		return animeData.map((data) => ({
+		const response: AxiosResponse<AnimeResponse> = await axios.get(endpoint);
+		return response.data.data.map((data) => ({
 			title: data.title,
 			synopsis: data.synopsis || "",
 			animeScore: data.animeScore || "",
