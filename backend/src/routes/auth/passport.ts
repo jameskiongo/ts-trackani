@@ -1,3 +1,4 @@
+import jwt from "jsonwebtoken";
 import passport from "passport";
 import passportGoogle from "passport-google-oauth20";
 import "dotenv/config";
@@ -58,11 +59,18 @@ passport.use(
 				};
 				const newUser = await db.insert(userTable).values(data).returning();
 				if (newUser.length > 0) {
+					jwt.sign({ userId: user[0].id }, String(process.env.JWT_SECRET), {
+						expiresIn: "1hr",
+					});
 					done(null, newUser[0]);
 				} else {
 					done(new Error("Failed to create user"));
 				}
 			} else {
+				jwt.sign({ userId: user[0].id }, String(process.env.JWT_SECRET), {
+					expiresIn: "1hr",
+				});
+
 				done(null, user[0]);
 			}
 		},

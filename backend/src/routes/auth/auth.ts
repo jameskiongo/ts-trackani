@@ -15,9 +15,13 @@ router.get(
 	}),
 );
 
-router.get("/google/redirect", passport.authenticate("google"), (_req, res) => {
-	res.redirect("/auth/protected");
-});
+router.get(
+	"/google/redirect",
+	passport.authenticate("google", { session: false }),
+	(_req, res) => {
+		res.redirect("/auth/protected");
+	},
+);
 router.get("/protected", (req, res) => {
 	if (req.isAuthenticated()) {
 		res.send("You are authenticated");
