@@ -42,36 +42,29 @@ passport.use(
 			callbackURL: "http://localhost:3000/auth/google/redirect",
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
-			const user = await db
-				.select()
-				.from(userTable)
-				.where(eq(userTable.googleId, profile.id));
-			if (!user || user.length === 0) {
-				const email = profile.emails?.[0].value;
-				if (!email) return done(new Error("Email is required"));
+			try {
+				const user = await db
+					.select()
+					.from(userTable)
+					.where(eq(userTable.googleId, profile.id));
+				if (!user || user.length === 0) {
+					const email = profile.emails?.[0].value;
+					if (!email) return done(new Error("Email is required"));
 
-				const data = {
-					firstName: profile.name?.givenName,
-					lastName: profile.name?.familyName,
-					email,
-					profilePic: profile.photos?.[0].value,
-					googleId: profile.id,
-				};
-				const newUser = await db.insert(userTable).values(data).returning();
-				if (newUser.length > 0) {
-					jwt.sign({ userId: user[0].id }, String(process.env.JWT_SECRET), {
-						expiresIn: "1hr",
-					});
-					done(null, newUser[0]);
-				} else {
-					done(new Error("Failed to create user"));
+					const data = {
+						firstName: profile.name?.givenName,
+						lastName: profile.name?.familyName,
+						email,
+						profilePic: profile.photos?.[0].value,
+						googleId: profile.id,
+					};
+					const newUser = await db.insert(userTable).values(data).returning();
+					if (newUser.length === 0) {
+						return done(new Error("Failed to create user"));
+					}
 				}
-			} else {
-				jwt.sign({ userId: user[0].id }, String(process.env.JWT_SECRET), {
-					expiresIn: "1hr",
-				});
-
-				done(null, user[0]);
+			} catch (error) {
+				done(new Error("Failed to create user"));
 			}
 		},
 	),
