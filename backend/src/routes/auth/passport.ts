@@ -1,6 +1,8 @@
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 import passport from "passport";
 import passportGoogle from "passport-google-oauth20";
+import { ExtractJwt } from "passport-jwt";
+import passportjwt from "passport-jwt";
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "../../db/db";
@@ -20,20 +22,6 @@ declare global {
 		}
 	}
 }
-passport.serializeUser((user, done) => {
-	done(null, user.id);
-});
-passport.deserializeUser(async (id: number, done) => {
-	try {
-		const user = await db.select().from(userTable).where(eq(userTable.id, id));
-		if (!user) {
-			return done(new Error("User not found"), null);
-		}
-		done(null, user[0]);
-	} catch (err) {
-		done(err, null);
-	}
-});
 passport.use(
 	new GoogleStrategy(
 		{
@@ -58,14 +46,33 @@ passport.use(
 						profilePic: profile.photos?.[0].value,
 						googleId: profile.id,
 					};
-					const newUser = await db.insert(userTable).values(data).returning();
-					if (newUser.length === 0) {
+					const user = await db.insert(userTable).values(data).returning();
+					if (user.length === 0) {
 						return done(new Error("Failed to create user"));
 					}
 				}
+				return done(null, user[0]);
 			} catch (error) {
-				done(new Error("Failed to create user"));
+				return done(new Error("Failed to create user"));
 			}
+		},
+	),
+);
+passport.use(
+	new passportjwt.Strategy(
+		{
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			secretOrKey: String(process.env.JWT_SECRET),
+		},
+		async (payload, done) => {
+			const user = await db
+				.select()
+				.from(userTable)
+				.where(eq(userTable.googleId, payload.sub));
+			if (user) {
+				return done(null, user, payload);
+			}
+			return done(new Error("Error"));
 		},
 	),
 );
