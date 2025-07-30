@@ -1,5 +1,8 @@
+// import jwt from "jsonwebtoken";
 import passport from "passport";
 import passportGoogle from "passport-google-oauth20";
+import { ExtractJwt } from "passport-jwt";
+import passportjwt from "passport-jwt";
 import "dotenv/config";
 import { eq } from "drizzle-orm";
 import { db } from "../../db/db";
@@ -19,20 +22,6 @@ declare global {
 		}
 	}
 }
-passport.serializeUser((user, done) => {
-	done(null, user.id);
-});
-passport.deserializeUser(async (id: number, done) => {
-	try {
-		const user = await db.select().from(userTable).where(eq(userTable.id, id));
-		if (!user) {
-			return done(new Error("User not found"), null);
-		}
-		done(null, user[0]);
-	} catch (err) {
-		done(err, null);
-	}
-});
 passport.use(
 	new GoogleStrategy(
 		{
@@ -41,30 +30,49 @@ passport.use(
 			callbackURL: "http://localhost:3000/auth/google/redirect",
 		},
 		async (_accessToken, _refreshToken, profile, done) => {
+			try {
+				const user = await db
+					.select()
+					.from(userTable)
+					.where(eq(userTable.googleId, profile.id));
+				if (!user || user.length === 0) {
+					const email = profile.emails?.[0].value;
+					if (!email) return done(new Error("Email is required"));
+
+					const data = {
+						firstName: profile.name?.givenName,
+						lastName: profile.name?.familyName,
+						email,
+						profilePic: profile.photos?.[0].value,
+						googleId: profile.id,
+					};
+					const user = await db.insert(userTable).values(data).returning();
+					if (user.length === 0) {
+						return done(new Error("Failed to create user"));
+					}
+				}
+				return done(null, user[0]);
+			} catch (error) {
+				return done(new Error("Failed to create user"));
+			}
+		},
+	),
+);
+passport.use(
+	new passportjwt.Strategy(
+		{
+			jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+			secretOrKey: String(process.env.JWT_SECRET),
+		},
+		async (payload, done) => {
 			const user = await db
 				.select()
 				.from(userTable)
-				.where(eq(userTable.googleId, profile.id));
-			if (!user || user.length === 0) {
-				const email = profile.emails?.[0].value;
-				if (!email) return done(new Error("Email is required"));
-
-				const data = {
-					firstName: profile.name?.givenName,
-					lastName: profile.name?.familyName,
-					email,
-					profilePic: profile.photos?.[0].value,
-					googleId: profile.id,
-				};
-				const newUser = await db.insert(userTable).values(data).returning();
-				if (newUser.length > 0) {
-					done(null, newUser[0]);
-				} else {
-					done(new Error("Failed to create user"));
-				}
-			} else {
-				done(null, user[0]);
+				.where(eq(userTable.googleId, payload.sub));
+			if (user) {
+				return done(null, user, payload);
 			}
+			return done(new Error("Error"));
 		},
 	),
 );
